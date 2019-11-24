@@ -1,0 +1,70 @@
+*{
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #a0a0a0;
+}
+.app{
+    width: 70vw;
+    margin: 50px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.app input, .app .todos{
+    width: 70%;
+    margin-bottom: 30px;
+}
+
+.app h1{
+    font-size: 3em;
+    font-weight: 100;
+}
+
+.app input, .todos li{
+    font-size: 1.5em;
+    padding: 20px;
+}
+
+.app input{
+    outline: none;
+    border: none;
+    text-align: center;
+    border-bottom: 1px solid black;
+}
+
+.todos{
+    list-style: none;
+    padding: 0;
+}
+
+.todos li{
+    display: flex;
+    justify-content: space-between;
+    background-color: #d0d0d0;
+    margin-bottom: 5px;
+}
+
+.todos li .delete:hover{
+    border: 1px solid red;
+}
+
+.todos li:hover{
+    background-color: #a0a0a0;
+    color: #fff
+}
+
+.todos li.done span{
+    text-decoration: line-through;
+}
+.todos li span{
+    color: #fff;
+}
+.todos li .delete{
+    outline: none;
+    border: none;
+    width: 30px;
+    height: 30px;
+    color: red;
+    background-color: rgb(255, 150, 150);
+    text-decoration: none !important;
+}
