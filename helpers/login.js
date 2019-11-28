@@ -16,10 +16,12 @@ exports.authUser = function (req, res) {
                 console.log(err)
             }
             if(data){  
-                req.session.isLogged = true
+                req.session.isLogged = !data.preRegistrated
                 req.session.loginAttemptFail = false
                 req.session.user = data.name
                 req.session.email = data.email
+                req.session.userId = data._id
+                req.session.preRegistrated = data.preRegistrated
                 res.redirect('/')
             }
             else{
@@ -31,4 +33,12 @@ exports.authUser = function (req, res) {
         res.send('Os campos não foram preenchidos');
         res.end();
     }
+}
+
+exports.logout = function (req,res) {
+    req.session.isLogged = false
+    req.session.preRegistrated = false
+    req.session.user = null
+    req.session.email = null
+    res.redirect('/')
 }

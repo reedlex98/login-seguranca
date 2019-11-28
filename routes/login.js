@@ -4,5 +4,6 @@ const helpers = require("../helpers/login")
 
 router.route('/')
     .post(helpers.authUser)
+    .get(helpers.logout)
 
 module.exports = router

@@ -17,6 +17,14 @@ const userSchema = new mongoose.Schema({
     email: {
         type: String,
         required: "Email cannot be blank"
+    },
+    preRegistrated: {
+        type: Boolean,
+        required: true
+    },
+    regDate: {
+        type: Date,
+        required: true
     }
 })
 

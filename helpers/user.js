@@ -4,116 +4,132 @@ const hasha = require('hasha')
 const nodemailer = require('nodemailer')
 const passwordValidator = require('password-validator')
 
-exports.getUser = function (req, res) {
-    res.render()
-}
-
-exports.getSpecificUser = function (req, res) {
-    db.User.findById(req.params.userId)
-        .then(foundUser => { res.json(foundUser) })
-        .catch(err => { res.send(err) })
-}
-
 exports.postUser = function (req, res) {
-    const userData = req.body
-    let userId
 
-    const password = passGen.generate({
-        length: 10,
-        numbers: true,
-        symbols: true,
-        excludeSimilarCharacters: true
+    db.User.findOne({ email: req.body.email }, function (err, data) {
+
+        if (data) {
+            req.session.registerAttemptFail = true
+            res.redirect('/cadastro')
+        }
+        else {
+
+            const userData = req.body
+            userData.preRegistrated = true
+
+            const password = passGen.generate({
+                length: 10,
+                numbers: true,
+                symbols: true,
+                excludeSimilarCharacters: true
+            })
+
+            const passHash = hasha(password, {
+                algorithm: "sha512"
+            })
+
+            userData.password = passHash
+            userData.regDate = new Date()
+
+            db.User.create(userData)
+                .then(function (newUser) {
+                    req.session.userId = newUser._id
+                    req.session.preRegistrated = true
+                    req.session.isLogged = false
+                    req.session.user = newUser.name
+                    req.session.email = newUser.email
+                    req.session.password = password
+                    console.log(newUser)
+                    res.status(201)
+                    res.redirect("/")
+
+
+                    let transporter = nodemailer.createTransport({
+                        service: "gmail",
+                        auth: {
+                            user: process.env.MAIL_USER,
+                            pass: process.env.MAIL_PASS
+                        },
+                        tls: {
+                            rejectUnauthorized: false
+                        }
+                    });
+
+                    let mailOptions = {
+                        from: `"Secure Login" <secure_login@slogin.com>`,
+                        to: userData.email,
+                        subject: 'Complete o seu cadastro',
+                        text: "",
+                        html: `
+                            <h1>Pré-cadastro efetuado</h1>
+                            <p>Você concluiu o pré-cadastro, abaixo estão seus dados, lembrando que a senha é gerada automáticamente por nosso sistema</p>
+                            <p>Nome de usuário: ${userData.name}</p>
+                            <p>Senha: ${password}</p>
+                            <h1>Conclua o cadastro!</h1>
+                            <p>Para concluir o cadastro, <a href="${process.env.DOMAIN}/login">clique aqui</a> para efetuar o login (use a senha acima). Após logar, clique em "completar cadastro" no canto superior direito da tela</p>
+                        `
+                    };
+
+                    transporter.sendMail(mailOptions, (error, info) => {
+                        if (error) {
+                            return console.log(error);
+                        }
+                        console.log('Message sent: %s', info.messageId);
+                        console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+
+                    });
+                })
+                .catch(function (err) {
+                    console.log(err)
+                })
+        }
     })
 
-    const passHash = hasha(password, {
-        algorithm: "sha512"
-    })
 
-    userData.password = passHash
-
-    db.User.create(userData)
-        .then(function (newUser) {
-            userId = newUser._id
-            res.status(201).json(newUser)
-        })
-        .catch(function (err) {
-            console.log(err)
-        })
-
-    let transporter = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            user: process.env.MAIL_USER,
-            pass: process.env.MAIL_PASS
-        },
-        tls: {
-            rejectUnauthorized: false
-        }
-    });
-
-    let mailOptions = {
-        from: `"Nodemailer Contact" <${process.env.MAIL_USER}>`,
-        to: userData.email,
-        subject: 'Pré-cadastro',
-        text: "Pré-cadastro",
-        html: `
-            <h1>Pré-cadastro efetuado</h1>
-            <p>Você concluiu o pré-cadastro, abaixo estão seus dados, lembrando que a senha é gerada automáticamente por nosso sistema</p>
-            <p>Nome de usuário: ${userData.name}</p>
-            <p>Senha: ${password}</p>
-        `
-    };
-
-    // send mail with defined transport object
-    transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            return console.log(error);
-        }
-        console.log('Message sent: %s', info.messageId);
-        console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-
-    });
 }
 
-exports.putTodos = function (req, res) {
+exports.putUser = function (req, res) {
     const userData = {}
-    const { password, confirmation } = req.body
+    const { password, confirmation, userId } = req.body
     const schema = new passwordValidator();
 
     schema
         .is().min(8)
-        .is().min(16)
+        .is().max(16)
         .has().symbols()
-        .has().numbers()
+        .has().digits()
         .has().letters()
         .has().not().spaces()
 
     if (password === confirmation) {
         if (schema.validate(password)) {
-            
+
             const passHash = hasha(password, {
                 algorithm: "sha512"
             })
-            
+
             userData.password = passHash
+            userData.preRegistrated = false
 
-            db.Todo.findOneAndUpdate({ _id: req.params.userId }, userData, { useFindAndModify: false, new: true })
-                .then(function (user) {
-                    res.json(user)
-                })
-                .catch(err => { res.send(err) })
+            db.User.findOneAndUpdate({ _id: userId }, userData, { useFindAndModify: false, new: true }, function (err, data) {
+                if (err) {
+                    res.send(err)
+                } else {
+                    req.session.isLogged = true
+                    req.session.loginAttemptFail = false
+                    req.session.preRegistrated = false
+                    req.session.user = data.name
+                    req.session.email = data.email
+                    console.log(data)
+                    res.json({ status: "Success", redirect: "/" })
+                }
+            })
         }
-        else
+        else {
             res.send("A senha nao atende os requisitos...")
+        }
     }
-    else
+    else {
         res.send("As senhas nao sao iguais...")
+    }
 }
-
-// exports.deleteTodos = function(req, res) {
-//     db.Todo.remove({_id: req.params.todoId})
-//         .then(function(todo){
-//             res.json({message: "we just deleted it"})
-//         })
-//         .catch(err => {res.send(err)})   
-// }

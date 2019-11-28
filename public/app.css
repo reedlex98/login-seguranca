@@ -13,14 +13,17 @@ body{
     align-items: center;
     justify-content: center;
     padding: 30px;
+    height: 100vh;
 }
 .home-container h1{
     color: rgb(25, 25, 100);
 }
 
 header{
+    position: fixed;
     background-color: black;
     height: 50px;
+    width: 100vw;
 }
 
 nav{
@@ -41,6 +44,10 @@ nav ul li{
 nav ul li a{
     color: white;
     text-decoration: none;
+}
+
+.fail{
+    color:red;
 }
 
 .login-form{

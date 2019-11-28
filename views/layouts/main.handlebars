@@ -1,31 +1,47 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Secure Login</title>
-    <script
-    src="https://code.jquery.com/jquery-3.4.1.min.js"
-    integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
-    crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="app.css">
 </head>
+
 <body>
     <header>
         <nav>
             <ul>
-                <li>
-                    <a href="/login">Login</a>
-                </li>
-                <li>
-                    <a href="/cadastro">Cadastro</a>
-                </li>
+                {{#if isLogged }}
+                    <li>
+                       <a href="/trocaSenha/{{userId}}">Trocar senha</a> 
+                    </li>
+                    <li>
+                       <a href="/api/auth">Sair</a> 
+                    </li>
+                {{else}}
+                    {{#if preRegistrated }}
+                        <li>
+                            <a href="/trocaSenha/{{userId}}">Completar cadastro</a> 
+                        </li>
+                    {{else}}
+                        <li>
+                            <a href="/login">Login</a>
+                        </li>
+                        <li>
+                            <a href="/cadastro">Cadastro</a>
+                        </li>
+                    {{/if}}
+                {{/if}}
             </ul>
         </nav>
     </header>
     {{{body}}}
 
-    <script src="app.js"></script>
+    <script src="app.js"></script> 
 </body>
+
 </html>

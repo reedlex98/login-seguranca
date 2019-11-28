@@ -1,0 +1,14 @@
+<div class="home-container">
+    <h1>Cadastro</h1>
+
+    <form id="cadastro" class="login-form" action="/api/user" method="POST">
+        {{#if registerAttemptFail}}
+            <p class="fail">O email digitado já está em uso</p>
+        {{/if}}
+        <input class="field" name="name" type="text" placeholder="Nome de usuario" required>
+        <input class="field" name="email" type="email" placeholder="Digite seu email" required>
+        <input class="button" type="submit" value="Cadastro">
+    </form>
+
+
+</div>

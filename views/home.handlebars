@@ -4,6 +4,13 @@
         <p>Username: {{user}}</p>
         <p>Email: {{email}}</p>
     {{else}}
-        <h1>Cadastre-se ou efetue o login</h1>
+        {{#if preRegistrated}}
+            <h1>Usuário pré-cadastrado</h1>
+            <p>Username: {{user}}</p>
+            <p>Email: {{email}}</p>
+            <p>Cheque sua caixa de entrada para completar o cadastro</p>
+        {{else}}
+            <h1>Cadastre-se ou efetue o login</h1>
+        {{/if}}
     {{/if}}
 </div>
