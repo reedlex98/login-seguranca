@@ -21,18 +21,29 @@
                     email: email.value,
                     password: password.value
                 },
-                success(data){
-                    if(data.status === "Success"){
+                success(data) {
+                    if (data.status === "Success") {
                         window.location = data.redirect
                     }
-                    else{
+                    else {
                         msg.text(data.status)
-                        msg.toggleClass("hidden").toggleClass("fail")
                         email.value = ""
                         password.value = ""
+                        msg.toggleClass("hidden").toggleClass("fail")
+                        setTimeout(function () {
+                            msg.toggleClass("hidden").toggleClass("fail")
+                        }, 2000)
                     }
                 }
             }).catch(err => { console.log(err) })
+        } else {
+            msg.toggleClass("hidden").toggleClass("fail")
+            msg.text("Preencha os campos!")
+            email.value = ""
+            password.value = ""
+            setTimeout(function () {
+                msg.toggleClass("hidden").toggleClass("fail")
+            }, 2000)
         }
     })
 </script>

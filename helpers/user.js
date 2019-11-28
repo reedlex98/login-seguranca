@@ -9,8 +9,7 @@ exports.postUser = function (req, res) {
     db.User.findOne({ email: req.body.email }, function (err, data) {
 
         if (data) {
-            req.session.registerAttemptFail = true
-            res.redirect('/cadastro')
+            res.json({ status: "Email já está em uso" })
         }
         else {
 
@@ -40,9 +39,6 @@ exports.postUser = function (req, res) {
                     req.session.email = newUser.email
                     req.session.password = password
                     console.log(newUser)
-                    res.status(201)
-                    res.redirect("/")
-
 
                     let transporter = nodemailer.createTransport({
                         service: "gmail",
@@ -78,9 +74,12 @@ exports.postUser = function (req, res) {
                         console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
 
                     });
+
+                    res.status(201)
+                    res.json({ status: "Success", redirect: "/" })
                 })
                 .catch(function (err) {
-                    console.log(err)
+                    res.json({ status: err })
                 })
         }
     })
