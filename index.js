@@ -28,8 +28,6 @@ app.use(session({
 }))
 
 app.get('/', function (req, res) {
-    req.session.registerAttemptFail = false
-    req.session.loginAttemptFail = false
     res.render('home', {
         isLogged: req.session.isLogged,
         preRegistrated: req.session.preRegistrated,
@@ -40,15 +38,11 @@ app.get('/', function (req, res) {
 })
 
 app.get('/login', function (req, res) {
-    res.render('login', {
-        loginAttemptFail: req.session.loginAttemptFail
-    })
+    res.render('login')
 })
 
 app.get('/cadastro', function (req, res) {
-    res.render('register',{
-        registerAttemptFail: req.session.registerAttemptFail
-    })
+    res.render('register')
 })
 
 app.get('/trocaSenha/:userId', function (req, res) {

@@ -1,11 +1,38 @@
 <div class="home-container">
     <h1>Login</h1>
-    <form class="login-form" action="/api/auth" method="POST">
-        {{#if loginAttemptFail}}
-            <p class="fail">Email ou senha incorretos!</p>
-        {{/if}}
-        <input class="field"  name="email" type="email" placeholder="Digite seu email" required>
-        <input class="field"  name="password" type="password" placeholder="Digite sua senha" required>
+    <form id="login" class="login-form">
+        <p id="msg" class="hidden"></p>
+        <input class="field" name="email" type="email" placeholder="Digite seu email" required>
+        <input class="field" name="password" type="password" placeholder="Digite sua senha" required>
         <input class="button" type="submit" value="Login">
     </form>
 </div>
+<script>
+    const login = $("#login")
+    const msg = $("#msg")
+
+    login.on("submit", function (e) {
+        e.preventDefault()
+        const { email, password } = e.target
+        if (email.value && password.value) {
+            $.post({
+                url: "/api/auth",
+                data: {
+                    email: email.value,
+                    password: password.value
+                },
+                success(data){
+                    if(data.status === "Success"){
+                        window.location = data.redirect
+                    }
+                    else{
+                        msg.text(data.status)
+                        msg.toggleClass("hidden").toggleClass("fail")
+                        email.value = ""
+                        password.value = ""
+                    }
+                }
+            }).catch(err => { console.log(err) })
+        }
+    })
+</script>

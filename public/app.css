@@ -50,6 +50,10 @@ nav ul li a{
     color:red;
 }
 
+.hidden{
+    display: none;
+}
+
 .login-form{
     display: flex;
     flex-direction: column;
