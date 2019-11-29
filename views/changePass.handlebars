@@ -1,129 +1,167 @@
 <style>
-    *{
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-body{
-    padding: 0;
-    margin: 0;
-}
+    * {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
 
-.home-container{
-    background-color: lightblue;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 30px;
-    height: 100vh;
-}
-.home-container h1{
-    color: rgb(25, 25, 100);
-}
+    body {
+        padding: 0;
+        margin: 0;
+    }
 
-header{
-    position: fixed;
-    background-color: black;
-    height: 50px;
-    width: 100vw;
-}
+    .home-container {
+        background-color: lightblue;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 30px;
+        height: 100vh;
+    }
 
-nav{
-    display: flex;
-    justify-content: flex-end;
-}
+    .home-container h1 {
+        color: rgb(25, 25, 100);
+    }
 
-nav ul{
-    list-style: none;
-    display: flex;
-}
+    header {
+        position: fixed;
+        background-color: black;
+        height: 50px;
+        width: 100vw;
+    }
 
-nav ul li{
-    margin-right: 20px;
-}
+    nav {
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    nav ul {
+        list-style: none;
+        display: flex;
+    }
+
+    nav ul li {
+        margin-right: 20px;
+    }
 
 
-nav ul li a{
-    color: white;
-    text-decoration: none;
-}
+    nav ul li a {
+        color: white;
+        text-decoration: none;
+    }
 
-.fail{
-    color:red;
-}
+    .fail {
+        color: red;
+    }
 
-.login-form{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
+    .hidden {
+        display: none;
+    }
 
-.login-form input{
-    margin: 5px;
-    width: 200px;
-}
+    .login-form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
 
-.login-form input.button{
-    margin-top: 15px;
-    width: 100px;
-    padding: 10px;
-    border: none;
-    background-color: rgb(25, 25, 100);
-    color:white;
-}
+    .login-form input {
+        margin: 5px;
+        width: 200px;
+    }
 
-.login-form input.button:hover{
-    cursor: pointer;
-}
+    .login-form input.button {
+        margin-top: 15px;
+        width: 100px;
+        padding: 10px;
+        border: none;
+        background-color: rgb(25, 25, 100);
+        color: white;
+    }
+
+    .login-form input.button:hover {
+        cursor: pointer;
+    }
 </style>
 
 <div class="home-container">
     <h1>Troca de senha</h1>
     <form id="trocaSenha" class="login-form" action="/api/user/" method="POST">
+        <p id="msg" class="hidden"></p>
         <input class="field" name="name" type="text" disabled value={{user}}>
         <input class="field" name="email" type="email" disabled value={{email}}>
-        <input class="field" name="password" placeholder="Digite a sua senha" type="password" required>
-        <input class="field" name="confirmation" placeholder="Confirme a sua senha" type="password" required>
+        <input class="field" name="prevpass" placeholder="Digite a senha antiga" type="password" required>
+        <input class="field" name="password" placeholder="Digite a nova senha" type="password" required>
+        <input class="field" name="confirmation" placeholder="Confirme a nova senha" type="password" required>
         <input class="button" type="submit" value="Trocar senha">
     </form>
 </div>
 <script>
     const trocaSenha = $("#trocaSenha")
+    const msg = $("#msg")
     const userId = decodeURIComponent("{{{userId}}}")
-    
+
     trocaSenha.on("submit", (e) => {
         e.preventDefault()
-        const password = e.target.password.value
-        const confirmation = e.target.confirmation.value
+        const { password, confirmation, prevpass } = e.target
 
-
-        if (password && confirmation) {
-            if (password === confirmation) {
-                if (/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[$*&@#])[0-9a-zA-Z$*&@#]{8,16}$/.test(password)) {
+        if (password.value && confirmation.value && prevpass.value) {
+            if (password.value === confirmation.value) {
+                if (/^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[$*&@#])[0-9a-zA-Z$*&@#]{8,16}$/.test(password.value)) {
                     $.ajax({
                         url: `/api/user/${userId}`,
                         method: "put",
                         data: {
-                            password,
-                            confirmation,
+                            prevpass: prevpass.value,
+                            password: password.value,
+                            confirmation: confirmation.value,
                             userId
                         }
                     }).then(result => {
                         console.log(result)
                         if (result.status === "Success") {
                             window.location = result.redirect
+                        } else {
+                            msg.toggleClass("hidden").toggleClass("fail")
+                            msg.text(result.status)
+                            confirmation.value = ""
+                            password.value = ""
+                            prevpass.value = ""
+                            setTimeout(function () {
+                                msg.toggleClass("hidden").toggleClass("fail")
+                            }, 5000)
                         }
                     }).catch(err => { console.log(err) })
                 }
                 else {
-                    alert("Regras para senha: minimo de 8 caracteres e maximo de 16. Deve conter pelo menos 1 numero, letra (maiuscula e minuscula) e simbolo")
+                    msg.toggleClass("hidden").toggleClass("fail")
+                    msg.text("Nova senha precisa ter pelo menos 8 caracteres e 1 de cada: simbolo, letra minuscula, letra maiscula e numero!")
+                    confirmation.value = ""
+                    password.value = ""
+                    prevpass.value = ""
+                    setTimeout(function () {
+                        msg.toggleClass("hidden").toggleClass("fail")
+                    }, 10000)
                 }
             }
             else {
-                alert("As senhas devem ser iguais")
+                msg.toggleClass("hidden").toggleClass("fail")
+                msg.text("Password precisam ser iguais!")
+                confirmation.value = ""
+                password.value = ""
+                prevpass.value = ""
+                setTimeout(function () {
+                    msg.toggleClass("hidden").toggleClass("fail")
+                }, 2000)
             }
         }
         else {
-            alert("Preencha os campos!")
+            msg.toggleClass("hidden").toggleClass("fail")
+            msg.text("Preencha os campos!")
+            confirmation.value = ""
+            password.value = ""
+            prevpass.value = ""
+            setTimeout(function () {
+                msg.toggleClass("hidden").toggleClass("fail")
+            }, 2000)
         }
     })
 </script>

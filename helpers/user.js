@@ -28,6 +28,7 @@ exports.postUser = function (req, res) {
             })
 
             userData.password = passHash
+            userData.accessKey = password
             userData.regDate = new Date()
 
             db.User.create(userData)
@@ -87,9 +88,63 @@ exports.postUser = function (req, res) {
 
 }
 
+exports.recoverPass = function (req, res) {
+    const {email} = req.body
+
+    if(email){
+        db.User.findOne({email}, function (err, data) {
+            if(err){
+                res.send(err)
+            }
+            if(data){
+
+                let transporter = nodemailer.createTransport({
+                    service: "gmail",
+                    auth: {
+                        user: process.env.MAIL_USER,
+                        pass: process.env.MAIL_PASS
+                    },
+                    tls: {
+                        rejectUnauthorized: false
+                    }
+                });
+
+                let mailOptions = {
+                    from: `"Secure Login" <secure_login@slogin.com>`,
+                    to: data.email,
+                    subject: 'Recuperação da senha',
+                    text: "",
+                    html: `
+                        <h1>Recuperação da senha'</h1>
+                        <p>Ola, ${data.name}. Você solicitou a recuperação da senha, aqui está ${data.accessKey}</p>
+                        <p>Para concluir o cadastro, <a href="${process.env.DOMAIN}/login">clique aqui</a> para efetuar o login (use a senha acima). Após logar, clique em "completar cadastro" no canto superior direito da tela</p>
+                    `
+                };
+
+                transporter.sendMail(mailOptions, (error, info) => {
+                    if (error) {
+                        return console.log(error);
+                    }
+                    console.log('Message sent: %s', info.messageId);
+                    console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+
+                });
+
+
+                res.json({status: "Success"})
+            }
+            else{
+                res.json({status: "Email inexistente!"})
+            }
+        })
+    }else{
+        res.json({status: "Email não foi inserido!"})
+    }
+}
+
 exports.putUser = function (req, res) {
     const userData = {}
-    const { password, confirmation, userId } = req.body
+    const { password, confirmation, userId, prevpass } = req.body
     const schema = new passwordValidator();
 
     schema
@@ -107,28 +162,49 @@ exports.putUser = function (req, res) {
                 algorithm: "sha512"
             })
 
+            const prevHash = hasha(prevpass, {
+                algorithm: "sha512"
+            })
+
             userData.password = passHash
             userData.preRegistrated = false
 
-            db.User.findOneAndUpdate({ _id: userId }, userData, { useFindAndModify: false, new: true }, function (err, data) {
+            db.User.findOne({ _id: userId }, function (err, userFound) {
                 if (err) {
                     res.send(err)
                 } else {
-                    req.session.isLogged = true
-                    req.session.loginAttemptFail = false
-                    req.session.preRegistrated = false
-                    req.session.user = data.name
-                    req.session.email = data.email
-                    console.log(data)
-                    res.json({ status: "Success", redirect: "/" })
+                    if (userFound.password === prevHash) {
+                        if (passHash !== prevHash) {
+                            db.User.findOneAndUpdate({ _id: userId }, userData, { useFindAndModify: false, new: true }, function (err, data) {
+                                if (err) {
+                                    res.send(err)
+                                } else {
+                                    req.session.isLogged = true
+                                    req.session.preRegistrated = false
+                                    req.session.user = data.name
+                                    req.session.email = data.email
+                                    req.session.userId = data._id
+                                    console.log(data)
+                                    res.json({ status: "Success", redirect: "/" })
+                                }
+                            })
+                        }
+                        else{
+                            res.json({ status: "Senha antiga e nova não podem ser iguais!" })
+                        }
+                    }
+                    else {
+                        res.json({ status: "Senha antiga está incorreta!" })
+                    }
                 }
             })
+
         }
         else {
-            res.send("A senha nao atende os requisitos...")
+            res.json({ status: "A senha nao atende os requisitos!" })
         }
     }
     else {
-        res.send("As senhas nao sao iguais...")
+        res.json({ status: "As senhas nao sao iguais!" })
     }
 }

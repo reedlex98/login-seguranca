@@ -1,0 +1,46 @@
+<div class="home-container">
+    <h1 id="title"> Esqueci minha senha</h1>
+    <form id="esqueciSenha" class="login-form">
+        <p id="msg" class="hidden"></p>
+        <input class="field" name="email" placeholder="Digite o seu email" type="password" required>
+        <input class="button" type="submit" value="Enviar senha">
+    </form>
+</div>
+
+<script>
+    const esqueciSenha = $("#esqueciSenha")
+    const msg = $("#msg")
+
+    esqueciSenha.on("submit", function (e) {
+        e.preventDefault()
+        const { email } = e.target
+        if (email.value) {
+            $.post({
+                url: "/api/user/recoverPass",
+                data: {
+                    email: email.value
+                },
+                success(data) {
+                    if (data.status === "Success") {
+                        esqueciSenha.css("display", "none")
+                        $("#title").text(`Enviamos um email para ${email.value}, cheque sua caixa de entrada`)
+                    } else {
+                        msg.toggleClass("hidden").toggleClass("fail")
+                        msg.text(data.status)
+                        email.value = ""
+                        setTimeout(function () {
+                            msg.toggleClass("hidden").toggleClass("fail")
+                        }, 2000)
+                    }
+                }
+            })
+        } else {
+            msg.toggleClass("hidden").toggleClass("fail")
+            msg.text("Preencha os campos!")
+            email.value = ""
+            setTimeout(function () {
+                msg.toggleClass("hidden").toggleClass("fail")
+            }, 2000)
+        }
+    })
+</script>
