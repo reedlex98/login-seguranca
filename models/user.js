@@ -14,10 +14,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: "Password cannot be blank"
     },
-    accessKey: {
-        type: String,
-        required: true
-    },
     email: {
         type: String,
         required: "Email cannot be blank"
@@ -25,6 +21,9 @@ const userSchema = new mongoose.Schema({
     preRegistrated: {
         type: Boolean,
         required: true
+    },
+    passRecovering: {
+        type: Boolean
     },
     regDate: {
         type: Date,

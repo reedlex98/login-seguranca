@@ -28,7 +28,6 @@ exports.postUser = function (req, res) {
             })
 
             userData.password = passHash
-            userData.accessKey = password
             userData.regDate = new Date()
 
             db.User.create(userData)
@@ -89,56 +88,87 @@ exports.postUser = function (req, res) {
 }
 
 exports.recoverPass = function (req, res) {
-    const {email} = req.body
+    const { email } = req.body
 
-    if(email){
-        db.User.findOne({email}, function (err, data) {
-            if(err){
+    if (email) {
+        db.User.findOne({ email }, function (err, data) {
+            if (err) {
                 res.send(err)
             }
-            if(data){
+            if (data) {
 
-                let transporter = nodemailer.createTransport({
-                    service: "gmail",
-                    auth: {
-                        user: process.env.MAIL_USER,
-                        pass: process.env.MAIL_PASS
-                    },
-                    tls: {
-                        rejectUnauthorized: false
-                    }
-                });
+                if (data.preRegistrated) {
+                    res.json({ status: "Email pré-cadastrado, cheque sua caixa de email para completar o cadastro!" })
+                }
+                else if(data.passRecovering) {
+                    res.json({ status: "Já enviamos uma mensagem de recuperação de senha para esse email, cheque sua caixa de entrada!" })
+                }
+                else{
 
-                let mailOptions = {
-                    from: `"Secure Login" <secure_login@slogin.com>`,
-                    to: data.email,
-                    subject: 'Recuperação da senha',
-                    text: "",
-                    html: `
-                        <h1>Recuperação da senha'</h1>
-                        <p>Ola, ${data.name}. Você solicitou a recuperação da senha, aqui está ${data.accessKey}</p>
-                        <p>Para concluir o cadastro, <a href="${process.env.DOMAIN}/login">clique aqui</a> para efetuar o login (use a senha acima). Após logar, clique em "completar cadastro" no canto superior direito da tela</p>
-                    `
-                };
-
-                transporter.sendMail(mailOptions, (error, info) => {
-                    if (error) {
-                        return console.log(error);
-                    }
-                    console.log('Message sent: %s', info.messageId);
-                    console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
-
-                });
+                    const password = passGen.generate({
+                        length: 10,
+                        numbers: true,
+                        symbols: true,
+                        excludeSimilarCharacters: true
+                    })
 
 
-                res.json({status: "Success"})
+                    const passHash = hasha(password, {
+                        algorithm: "sha512"
+                    })
+
+                    db.User.findOneAndUpdate({ _id: data._id }, { password: passHash, passRecovering: true }, { useFindAndModify: false, new: true }, function (err, updatedUser) {
+                        if (err) {
+                            res.send(err)
+                        } else {
+                            console.log(updatedUser)
+
+                            let transporter = nodemailer.createTransport({
+                                service: "gmail",
+                                auth: {
+                                    user: process.env.MAIL_USER,
+                                    pass: process.env.MAIL_PASS
+                                },
+                                tls: {
+                                    rejectUnauthorized: false
+                                }
+                            });
+
+                            let mailOptions = {
+                                from: `"Secure Login" <secure_login@slogin.com>`,
+                                to: data.email,
+                                subject: "Recuperação de senha",
+                                text: "",
+                                html: `
+                                    <h1>Recuperação da senha'</h1>
+                                    <p>Ola, ${data.name}</p>
+                                    <p> Você solicitou a recuperação da senha, use essa nova senha para efetuar o login:<br><br><strong style='background-color: darkblue; color: white; padding: 5px'>${password}</strong></p>
+                                    <p>Após isso, clique em <strong>"Trocar senha"</strong> no canto superior direito da tela para redefinir sua senha</p>
+                                `
+                            };
+
+                            transporter.sendMail(mailOptions, (error, info) => {
+                                if (error) {
+                                    return console.log(error);
+                                }
+                                console.log('Message sent: %s', info.messageId);
+                                console.log('Preview URL: %s', nodemailer.getTestMessageUrl(info));
+
+                            });
+
+
+                            res.json({ status: "Success" })
+                        }
+                    })
+
+                }
             }
-            else{
-                res.json({status: "Email inexistente!"})
+            else {
+                res.json({ status: "Email inexistente!" })
             }
         })
-    }else{
-        res.json({status: "Email não foi inserido!"})
+    } else {
+        res.json({ status: "Email não foi inserido!" })
     }
 }
 
@@ -189,7 +219,7 @@ exports.putUser = function (req, res) {
                                 }
                             })
                         }
-                        else{
+                        else {
                             res.json({ status: "Senha antiga e nova não podem ser iguais!" })
                         }
                     }

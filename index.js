@@ -41,6 +41,10 @@ app.get('/login', function (req, res) {
     res.render('login')
 })
 
+app.get('/recuperarSenha', function (req, res) {
+    res.render('recoverPass')
+})
+
 app.get('/cadastro', function (req, res) {
     res.render('register')
 })

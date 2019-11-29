@@ -14,6 +14,7 @@ body{
     justify-content: center;
     padding: 30px;
     height: 100vh;
+    text-align: center;
 }
 .home-container h1{
     color: rgb(25, 25, 100);
@@ -67,7 +68,7 @@ nav ul li a{
 
 .login-form input.button{
     margin-top: 15px;
-    width: 100px;
+    min-width: 100px;
     padding: 10px;
     border: none;
     background-color: rgb(25, 25, 100);

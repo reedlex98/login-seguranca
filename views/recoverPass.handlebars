@@ -2,8 +2,8 @@
     <h1 id="title"> Esqueci minha senha</h1>
     <form id="esqueciSenha" class="login-form">
         <p id="msg" class="hidden"></p>
-        <input class="field" name="email" placeholder="Digite o seu email" type="password" required>
-        <input class="button" type="submit" value="Enviar senha">
+        <input class="field" name="email" placeholder="Digite o seu email" type="email" required>
+        <input class="button" type="submit" value="Recuperar senha">
     </form>
 </div>
 
@@ -30,7 +30,7 @@
                         email.value = ""
                         setTimeout(function () {
                             msg.toggleClass("hidden").toggleClass("fail")
-                        }, 2000)
+                        }, 5000)
                     }
                 }
             })
