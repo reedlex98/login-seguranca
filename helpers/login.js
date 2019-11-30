@@ -17,13 +17,14 @@ exports.authUser = function (req, res) {
             }
             if(data){  
                 req.session.isLogged = !data.preRegistrated
+                req.session.preRegistrated = data.preRegistrated
                 req.session.user = data.name
                 req.session.email = data.email
                 req.session.userId = data._id
                 res.json({ status: "Success", redirect: "/"})
             }
             else{
-                res.json({ status: "Nome de usuário ou senha errados"})
+                res.json({ status: "Email ou senha errados"})
             }
         })
     } else {
@@ -36,5 +37,7 @@ exports.logout = function (req,res) {
     req.session.preRegistrated = false
     req.session.user = null
     req.session.email = null
+    req.session.password = null
+    req.session.userId = null
     res.redirect('/')
 }

@@ -60,7 +60,7 @@ exports.postUser = function (req, res) {
                             <h1>Pré-cadastro efetuado</h1>
                             <p>Você concluiu o pré-cadastro, abaixo estão seus dados, lembrando que a senha é gerada automáticamente por nosso sistema</p>
                             <p>Nome de usuário: ${userData.name}</p>
-                            <p>Senha: ${password}</p>
+                            <p><strong style='background-color: darkblue; color: white; padding: 5px'>${password}</strong></p>
                             <h1>Conclua o cadastro!</h1>
                             <p>Para concluir o cadastro, <a href="${process.env.DOMAIN}/login">clique aqui</a> para efetuar o login (use a senha acima). Após logar, clique em "completar cadastro" no canto superior direito da tela</p>
                         `
@@ -140,7 +140,7 @@ exports.recoverPass = function (req, res) {
                                 subject: "Recuperação de senha",
                                 text: "",
                                 html: `
-                                    <h1>Recuperação da senha'</h1>
+                                    <h1>Recuperação de senha</h1>
                                     <p>Ola, ${data.name}</p>
                                     <p> Você solicitou a recuperação da senha, use essa nova senha para efetuar o login:<br><br><strong style='background-color: darkblue; color: white; padding: 5px'>${password}</strong></p>
                                     <p>Após isso, clique em <strong>"Trocar senha"</strong> no canto superior direito da tela para redefinir sua senha</p>
@@ -198,6 +198,7 @@ exports.putUser = function (req, res) {
 
             userData.password = passHash
             userData.preRegistrated = false
+            userData.passRecovering = false
 
             db.User.findOne({ _id: userId }, function (err, userFound) {
                 if (err) {

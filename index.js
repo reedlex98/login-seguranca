@@ -38,33 +38,53 @@ app.get('/', function (req, res) {
 })
 
 app.get('/login', function (req, res) {
-    res.render('login')
+    if (!req.session.isLogged && !req.session.preRegistrated) {
+        res.render('login')
+    }
+    else {
+        res.redirect('/')
+    }
 })
 
 app.get('/recuperarSenha', function (req, res) {
-    res.render('recoverPass')
+    if (!req.session.preRegistrated) {
+        res.render('recoverPass')
+    }
+    else {
+        res.redirect('/')
+    }
 })
 
 app.get('/cadastro', function (req, res) {
-    res.render('register')
+    if (!req.session.isLogged && !req.session.preRegistrated) {
+        res.render('register')
+    }
+    else {
+        res.redirect('/')
+    }
 })
 
 app.get('/trocaSenha/:userId', function (req, res) {
-    db.User.findById(req.params.userId, function (err, data) {
-        if (data) {
-            const { name, email, _id } = data
-            res.render("changePass", {
-                userId: _id,
-                user: name,
-                email: email,
-                isLogged: req.session.isLogged,
-                preRegistrated: req.session.preRegistrated
-            })
-        }
-        else{
-            res.send(err)
-        }
-    })
+    if (req.session.isLogged || req.session.preRegistrated) {
+        db.User.findById(req.params.userId, function (err, data) {
+            if (data) {
+                const { name, email, _id } = data
+                res.render("changePass", {
+                    userId: _id,
+                    user: name,
+                    email: email,
+                    isLogged: req.session.isLogged,
+                    preRegistrated: req.session.preRegistrated
+                })
+            }
+            else {
+                res.send(err)
+            }
+        })
+    }
+    else{
+        res.redirect('/')
+    }
 })
 
 app.use('/api/user', userRoutes)
